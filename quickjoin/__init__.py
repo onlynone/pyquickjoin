@@ -21,24 +21,18 @@ An iterator is returned. Each line does not have a trailing newline
         line_parts = line.rstrip("\n").split(separator)
         key = line_parts.pop(file2_key_column)
 
-        print >>sys.stderr, "Looking up key: %s" % (key,)
         if key in lookup_table:
-            print >>sys.stderr, "Found key: %s" % (key,)
             (_key, value) = lookup_table.set_location(key)
-            print >>sys.stderr, "  - First return values: k:%s, v:%s" % (_key,value)
             while key == _key:
-                print >>sys.stderr, "  - Key matches, yielding..."
                 yield separator.join([key, separator.join(line_parts), value])
                 try:
                     (_key, value) = lookup_table.next()
-                    print >>sys.stderr, "  - Next return values: k:%s, v:%s" % (_key,value)
                 except bsddb.db.DBNotFoundError:
-                    print >>sys.stderr, "  - EOF"
                     (_key, value) = (None, None)
 
     lookup_table.close()
 
-def join_map(file1, file1_key_column, file2, file2_key_column, separator):
+def join_dict(file1, file1_key_column, file2, file2_key_column, separator):
     """
 Join two files with the given key columns and separator. Read the first
 file in fully to create a lookup table. Then iterate through the second

@@ -1,9 +1,7 @@
 import sys
 import argparse
-from collections import defaultdict
-import bsddb
 
-from . import join_map, join_bsddb
+from . import join_dict, join_bsddb
 
 def main(args=None):
     if args == None:
@@ -14,6 +12,7 @@ def main(args=None):
     parser.add_argument('-1', metavar='FIELD', dest="file1_key_column", type=int, default=1, help='join on this FIELD of file 1')
     parser.add_argument('-2', metavar='FIELD', dest="file2_key_column", type=int, default=1, help='join on this FIELD of file 2')
     parser.add_argument('-t', metavar='CHAR', dest="separator", default="\t", help='use CHAR as input and output field separator')
+    parser.add_argument('-d', '--disk', action='store_true')
     parser.add_argument('file1', metavar='FILE1')
     parser.add_argument('file2', metavar='FILE2', nargs='?', default="-")
 
@@ -28,22 +27,12 @@ def main(args=None):
     file1 = argparse.FileType('r')(parsed_args.file1)
     file2 = argparse.FileType('r')(parsed_args.file2)
 
-    joined = join_bsddb(
-        file1,
-        parsed_args.file1_key_column - 1,
-        file2,
-        parsed_args.file2_key_column - 1,
-        parsed_args.separator)
+    if parsed_args.disk:
+        join_method = join_bsddb
+    else:
+        join_method = join_dict
 
-    for line in joined:
-        print line
-
-    print ""
-
-    file1 = argparse.FileType('r')(parsed_args.file1)
-    file2 = argparse.FileType('r')(parsed_args.file2)
-
-    joined = join_map(
+    joined = join_method(
         file1,
         parsed_args.file1_key_column - 1,
         file2,
